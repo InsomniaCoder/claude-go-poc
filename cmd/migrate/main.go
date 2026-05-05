@@ -1,3 +1,4 @@
+// cmd/migrate/main.go
 package main
 
 import (

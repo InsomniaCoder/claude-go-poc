@@ -1,3 +1,4 @@
+// cmd/worker/main.go
 package main
 
 import (
@@ -55,6 +56,8 @@ func main() {
 	slog.Info("worker starting", "topic", cfg.KafkaTopic, "group", cfg.KafkaGroupID)
 	if err := consumer.Run(ctx); err != nil {
 		slog.Error("consumer error", "err", err)
-		os.Exit(1)
+		// deferred consumer.Close() and st.Close() run on return
+		return
 	}
+	slog.Info("worker shutting down")
 }

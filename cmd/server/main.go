@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/InsomniaCoder/claude-go-poc/internal/api"
 	"github.com/InsomniaCoder/claude-go-poc/internal/config"
@@ -50,15 +51,27 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	errCh := make(chan error, 1)
 	go func() {
 		slog.Info("server starting", "addr", cfg.HTTPAddr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			slog.Error("server error", "err", err)
-			os.Exit(1)
+			errCh <- err
 		}
 	}()
 
-	<-ctx.Done()
-	slog.Info("shutting down server")
-	srv.Shutdown(context.Background())
+	select {
+	case <-ctx.Done():
+		stop() // call immediately so a second signal forces hard exit
+		slog.Info("shutting down server")
+	case err := <-errCh:
+		slog.Error("server error", "err", err)
+		// deferred cleanup (st.Close, producer.Close) runs on return
+		return
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		slog.Error("shutdown error", "err", err)
+	}
 }

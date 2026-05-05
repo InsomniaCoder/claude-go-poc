@@ -1,5 +1,19 @@
 # CLAUDE.md
 
+## Prerequisites
+
+This repo uses the **superpowers skill plugin** for Claude Code. Skills referenced below
+(`brainstorming`, `writing-plans`, `test-driven-development`, `verification-before-completion`,
+`requesting-code-review`, `systematic-debugging`) are installed via the plugin, not stored in this repo.
+
+Install: in Claude Code, run `/install-plugin` and search for `superpowers` (or ask Claude to install it).
+Skills live at: `~/.claude/plugins/cache/claude-plugins-official/superpowers/`
+
+Without the plugin the workflow docs still describe the *intent* of each step — you can follow
+them manually (run the described commands yourself) even without the skills.
+
+---
+
 ## Project Overview
 
 Activity feed with two binaries:

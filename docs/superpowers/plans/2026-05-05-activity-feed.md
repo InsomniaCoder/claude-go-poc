@@ -6,7 +6,7 @@
 
 **Architecture:** `cmd/server` handles HTTP (`POST /events`, `GET /timeline`, `GET /healthz`) and publishes to Kafka; `cmd/worker` consumes from Kafka and writes to ClickHouse. Both share `internal/` packages. A third tiny `cmd/migrate` runs ClickHouse schema migrations.
 
-**Tech Stack:** Go 1.23, franz-go (Kafka), clickhouse-go/v2, chi (HTTP), envconfig, slog, golangci-lint, Redpanda, ClickHouse, Docker multi-stage builds, GitHub Actions.
+**Tech Stack:** Go 1.25, franz-go (Kafka), clickhouse-go/v2, chi (HTTP), envconfig, slog, golangci-lint, Redpanda, ClickHouse, Docker multi-stage builds, GitHub Actions.
 
 ---
 
@@ -1197,7 +1197,7 @@ git commit -m "feat: add cmd/worker and cmd/migrate entrypoints"
 
 ```dockerfile
 # Dockerfile
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25-alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
@@ -1409,7 +1409,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: "1.25"
           cache: true
 
       - name: Lint

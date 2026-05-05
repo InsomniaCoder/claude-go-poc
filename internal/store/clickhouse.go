@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
@@ -67,7 +68,11 @@ func (s *ClickHouseStore) Timeline(ctx context.Context, q TimelineQuery) ([]even
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Error("close rows", "err", err)
+		}
+	}()
 
 	var events []event.Event
 	for rows.Next() {

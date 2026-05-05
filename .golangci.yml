@@ -1,12 +1,11 @@
 # .golangci.yml
-version: "1"
+version: "2"
 
 linters:
   enable:
     - errcheck
     - govet
     - staticcheck
-    - gosimple
     - ineffassign
     - unused
 

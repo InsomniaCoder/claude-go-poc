@@ -24,7 +24,9 @@ func NewHandler(s store.Store, p kafka.Producer, topic string) *Handler {
 
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
+		slog.Error("encode health response", "err", err)
+	}
 }
 
 func (h *Handler) PublishEvent(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +47,9 @@ func (h *Handler) PublishEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(e)
+	if err := json.NewEncoder(w).Encode(e); err != nil {
+		slog.Error("encode publish response", "err", err)
+	}
 }
 
 func (h *Handler) Timeline(w http.ResponseWriter, r *http.Request) {
@@ -75,5 +79,7 @@ func (h *Handler) Timeline(w http.ResponseWriter, r *http.Request) {
 		events = []event.Event{}
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(events)
+	if err := json.NewEncoder(w).Encode(events); err != nil {
+		slog.Error("encode timeline response", "err", err)
+	}
 }

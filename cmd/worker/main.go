@@ -27,7 +27,11 @@ func main() {
 		slog.Error("connect clickhouse", "err", err)
 		os.Exit(1)
 	}
-	defer st.Close()
+	defer func() {
+		if err := st.Close(); err != nil {
+			slog.Error("close store", "err", err)
+		}
+	}()
 
 	handler := func(ctx context.Context, e event.Event) error {
 		if err := st.Insert(ctx, e); err != nil {

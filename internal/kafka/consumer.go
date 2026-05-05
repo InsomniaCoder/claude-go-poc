@@ -23,6 +23,7 @@ func NewConsumer(brokers []string, groupID, topic string, handler EventHandler) 
 		kgo.SeedBrokers(brokers...),
 		kgo.ConsumerGroup(groupID),
 		kgo.ConsumeTopics(topic),
+		kgo.AutoCommitMarks(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("new kafka consumer: %w", err)
@@ -30,11 +31,17 @@ func NewConsumer(brokers []string, groupID, topic string, handler EventHandler) 
 	return &Consumer{client: client, handler: handler}, nil
 }
 
-// Run polls Kafka until ctx is cancelled. Returns nil on clean shutdown.
+// Run polls Kafka until ctx is cancelled or the client is closed.
+// Handler errors are logged and the record is skipped (at-most-once delivery).
+// Caller must invoke Close() after Run returns to release resources.
 func (c *Consumer) Run(ctx context.Context) error {
 	for {
 		fetches := c.client.PollFetches(ctx)
 		if fetches.IsClientClosed() {
+			return nil
+		}
+		// ctx cancelled = graceful shutdown
+		if ctx.Err() != nil {
 			return nil
 		}
 		if errs := fetches.Errors(); len(errs) > 0 {
@@ -51,7 +58,9 @@ func (c *Consumer) Run(ctx context.Context) error {
 			}
 			if err := c.handler(ctx, e); err != nil {
 				slog.Error("handle event", "err", err, "event_id", e.ID)
+				return
 			}
+			c.client.MarkCommitRecords(r)
 		})
 	}
 }

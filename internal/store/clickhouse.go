@@ -9,6 +9,8 @@ import (
 	"github.com/InsomniaCoder/claude-go-poc/internal/event"
 )
 
+var _ Store = (*ClickHouseStore)(nil)
+
 type ClickHouseStore struct {
 	conn driver.Conn
 }
@@ -52,10 +54,14 @@ func (s *ClickHouseStore) Timeline(ctx context.Context, q TimelineQuery) ([]even
 	}
 
 	limit := q.Limit
-	if limit <= 0 || limit > 100 {
+	if limit <= 0 {
 		limit = 50
 	}
-	query += fmt.Sprintf(` ORDER BY created_at DESC LIMIT %d`, limit)
+	if limit > 100 {
+		limit = 100
+	}
+	args = append(args, limit)
+	query += ` ORDER BY created_at DESC LIMIT ?`
 
 	rows, err := s.conn.Query(ctx, query, args...)
 	if err != nil {

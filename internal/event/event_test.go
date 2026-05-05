@@ -61,7 +61,7 @@ func TestNew_SetsFields(t *testing.T) {
 func TestNew_UniqueIDs(t *testing.T) {
 	r := event.CreateRequest{ActorID: "u1", Action: "post.liked"}
 	ids := map[string]bool{}
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		e := event.New(r)
 		if ids[e.ID] {
 			t.Fatalf("duplicate ID generated: %s", e.ID)
